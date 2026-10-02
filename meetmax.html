@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeetMax | Make time for each other</title>
+  <style>
+    :root {
+      --ink: #16232b;
+      --muted: #718087;
+      --line: #e4e9e8;
+      --paper: #fbfcfa;
+      --mint: #b8e7d2;
+      --mint-dark: #266d58;
+      --coral: #ff7968;
+      --yellow: #ffe4a3;
+      --navy: #1b3038;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    * { box-sizing: border-box; }
+
+    body { margin: 0; background: var(--paper); }
+
+    button, input, select { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .app-shell { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      display: flex;
+      width: 250px;
+      flex-shrink: 0;
+      flex-direction: column;
+      padding: 30px 18px 22px;
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .brand { padding: 0 14px 40px; font-size: 27px; font-weight: 700; letter-spacing: -1px; }
+    .brand span { color: var(--coral); }
+    .eyebrow { margin: 0 0 8px; color: var(--muted); font-family: Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+
+    .nav-list { display: grid; gap: 6px; }
+    .nav-button {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #b8c4c5;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      text-align: left;
+    }
+    .nav-button:hover, .nav-button.active { background: #29444b; color: #fff; }
+    .nav-icon { width: 20px; color: var(--mint); font-size: 17px; text-align: center; }
+    .sidebar-footer { margin-top: auto; padding: 18px 14px 0; border-top: 1px solid #365057; color: #b8c4c5; font-family: Arial, sans-serif; font-size: 12px; }
+    .profile { display: flex; align-items: center; gap: 10px; margin-top: 14px; color: #fff; font-size: 14px; }
+    .avatar { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: var(--coral); color: var(--navy); font: 700 12px Arial, sans-serif; }
+
+    .content { width: 100%; max-width: 1320px; padding: 34px 5vw 60px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 45px; }
+    .mobile-menu { display: none; }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .notification-button { position: relative; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--ink); }
+    .notification-dot { position: absolute; top: 5px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); }
+
+    .view { display: none; animation: arrive 250ms ease-out; }
+    .view.active { display: block; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    h1 { max-width: 720px; margin: 0 0 14px; font-size: clamp(42px, 6vw, 78px); line-height: .95; letter-spacing: -3px; }
+    h2 { margin: 0; font-size: 31px; letter-spacing: -1px; }
+    h3 { margin: 0; font-size: 20px; }
+    .intro { max-width: 510px; margin: 0 0 34px; color: var(--muted); font: 16px/1.55 Arial, sans-serif; }
+
+    .hero-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; margin-bottom: 20px; }
+    .panel { border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .welcome-panel { min-height: 285px; padding: 34px; background: var(--mint); border: 0; }
+    .welcome-panel .eyebrow { color: var(--mint-dark); }
+    .next-up { display: flex; min-height: 285px; flex-direction: column; justify-content: space-between; padding: 25px; }
+    .next-up strong { display: block; margin: 9px 0 4px; font-size: 25px; }
+    .next-up p, .subcopy { margin: 0; color: var(--muted); font: 13px/1.5 Arial, sans-serif; }
+    .date-chip { align-self: flex-start; padding: 7px 10px; border-radius: 5px; background: var(--yellow); color: #725c25; font: 700 11px Arial, sans-serif; letter-spacing: .8px; text-transform: uppercase; }
+    .button { padding: 12px 17px; border: 0; border-radius: 6px; background: var(--navy); color: #fff; font: 700 13px Arial, sans-serif; }
+    .button:hover { background: #31545d; }
+    .button.secondary { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+    .button.coral { background: var(--coral); color: var(--navy); }
+    .button.coral:hover { background: #ff9284; }
+
+    .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .quick-link { display: block; min-height: 135px; padding: 22px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: inherit; text-align: left; text-decoration: none; }
+    .quick-link:hover { border-color: var(--mint-dark); }
+    .quick-link .large-icon { display: block; margin-bottom: 20px; color: var(--coral); font-size: 24px; }
+    .quick-link strong { display: block; margin-bottom: 6px; font-size: 18px; }
+    .quick-link span { color: var(--muted); font: 12px Arial, sans-serif; }
+
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font: 14px Arial, sans-serif; }
+    .event-list { display: grid; gap: 12px; }
+    .event-row { display: grid; grid-template-columns: 75px 1fr auto; gap: 20px; align-items: center; padding: 20px; }
+    .event-date { color: var(--mint-dark); font: 700 12px Arial, sans-serif; text-align: center; text-transform: uppercase; }
+    .event-date strong { display: block; color: var(--ink); font: 700 30px Georgia, serif; }
+    .event-row p { margin: 5px 0 0; color: var(--muted); font: 13px Arial, sans-serif; }
+
+    .form-panel { max-width: 670px; padding: 27px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; margin: 25px 0; }
+    label { display: grid; gap: 7px; color: var(--muted); font: 700 11px Arial, sans-serif; letter-spacing: .7px; text-transform: uppercase; }
+    input, select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); outline-color: var(--mint-dark); }
+    .full { grid-column: 1 / -1; }
+
+    .activity-layout { display: grid; grid-template-columns: minmax(0, 650px) 1fr; gap: 20px; align-items: start; }
+    .activity-card { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .activity-art { display: grid; min-height: 225px; place-items: center; background: var(--yellow); color: var(--navy); font-size: 70px; }
+    .activity-content { padding: 25px; }
+    .activity-content p { margin: 8px 0 20px; color: var(--muted); font: 14px/1.5 Arial, sans-serif; }
+    .activity-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+    .tag { padding: 6px 9px; border-radius: 4px; background: #edf5f0; color: var(--mint-dark); font: 700 11px Arial, sans-serif; }
+    .activity-actions { display: flex; gap: 10px; }
+    .activity-side { padding: 25px; }
+    .activity-side ul { padding: 0; margin: 19px 0 0; list-style: none; }
+    .activity-side li { padding: 12px 0; border-top: 1px solid var(--line); color: var(--muted); font: 13px/1.4 Arial, sans-serif; }
+
+    .request-list { display: grid; max-width: 750px; gap: 12px; }
+    .request { display: flex; align-items: center; gap: 15px; padding: 18px; }
+    .request .avatar { flex-shrink: 0; }
+    .request-copy { flex: 1; }
+    .request-copy strong { display: block; margin-bottom: 4px; font-size: 16px; }
+    .request-copy span { color: var(--muted); font: 12px Arial, sans-serif; }
+    .request-actions { display: flex; gap: 8px; }
+    .request-dialog { width: min(520px, calc(100% - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); box-shadow: 0 20px 60px #16232b33; }
+    .request-dialog::backdrop { background: #16232b80; }
+    .request-dialog-content { padding: 26px; }
+    .request-dialog-heading { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+    .request-dialog-heading h2 { font-size: 28px; }
+    .request-dialog-close { width: 36px; height: 36px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--ink); font: 20px Arial, sans-serif; }
+    .request-dialog-description { margin: 15px 0 20px; color: var(--muted); font: 14px/1.55 Arial, sans-serif; }
+    .request-details { display: grid; gap: 12px; padding: 17px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .request-details span { display: block; margin-bottom: 4px; color: var(--muted); font: 700 10px Arial, sans-serif; letter-spacing: .8px; text-transform: uppercase; }
+    .request-details strong, .request-details a { color: var(--ink); font: 14px Arial, sans-serif; }
+    .request-dialog-status { min-height: 18px; margin: 12px 0 0; color: var(--mint-dark); font: 13px Arial, sans-serif; }
+    .request-dialog-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .group-detail { max-width: 750px; margin-top: 18px; padding: 25px; }
+    .add-member-form { display: grid; max-width: 500px; gap: 8px; }
+    .add-member-controls { display: flex; gap: 8px; }
+    .member-list { display: grid; gap: 0; margin: 20px 0 0; padding: 0; list-style: none; }
+    .member-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .member-row strong { flex: 1; font: 14px Arial, sans-serif; }
+    .group-status { min-height: 18px; margin: 10px 0 0; color: var(--mint-dark); font: 13px Arial, sans-serif; }
+    .empty-state { padding: 38px; color: var(--muted); text-align: center; font: 14px Arial, sans-serif; }
+
+    @media (max-width: 780px) {
+      .app-shell { display: block; }
+      .sidebar { width: 100%; padding: 17px 18px; }
+      .brand { padding: 0; }
+      .nav-list, .sidebar-footer { display: none; }
+      .mobile-menu { display: block; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; background: #fff; }
+      .content { padding: 25px 18px 45px; }
+      .topbar { margin-bottom: 30px; }
+      .hero-grid, .activity-layout { grid-template-columns: 1fr; }
+      .quick-grid { grid-template-columns: 1fr 1fr; }
+      h1 { letter-spacing: -2px; }
+    }
+
+    @media (max-width: 480px) {
+      .quick-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+      .event-row { grid-template-columns: 52px 1fr; gap: 12px; }
+      .event-row .button { grid-column: 2; justify-self: start; }
+      .request { align-items: start; flex-wrap: wrap; }
+      .request-actions { width: 100%; margin-left: 45px; }
+      .request-dialog-actions { flex-direction: column; }
+      .add-member-controls { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">Meet<span>Max</span></div>
+      <nav class="nav-list" aria-label="Main navigation">
+        <button class="nav-button active" data-view="home"><span class="nav-icon">⌂</span>Home</button>
+        <button class="nav-button" data-view="schedule"><span class="nav-icon">▣</span>Schedule</button>
+        <button class="nav-button" data-view="locations"><span class="nav-icon">⌖</span>Locations</button>
+        <button class="nav-button" data-view="events"><span class="nav-icon">✦</span>Events Near You</button>
+        <button class="nav-button" data-view="groups"><span class="nav-icon">♧</span>Groups</button>
+        <button class="nav-button" data-view="activities"><span class="nav-icon">↗</span>Activities</button>
+        <button class="nav-button" data-view="requests"><span class="nav-icon">♡</span>Requests <span class="request-count">2</span></button>
+      </nav>
+      <div class="sidebar-footer">Planning time together, made simple.<div class="profile"><span class="avatar">AM</span>Alex Morgan</div></div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <p class="eyebrow">Fresno, California · Central Valley</p>
+        <div class="topbar-actions"><button class="mobile-menu" aria-label="Open menu">☰</button><button class="notification-button" data-view="requests" aria-label="View requests">♡<span class="notification-dot"></span></button></div>
+      </header>
+
+      <section class="view active" id="home">
+        <div class="hero-grid">
+          <div class="welcome-panel"><p class="eyebrow">Your week, together</p><h1>Make time for each other.</h1><p class="intro">MeetMax finds the moments where your group can connect, then turns them into plans worth making.</p><button class="button" data-view="activities">Find an activity&nbsp; →</button></div>
+          <div class="panel next-up"><div><span class="date-chip">Next up</span><strong>Sunday brunch</strong><p>Sunday, Sep 28 · 11:00 AM<br>Libelula · Downtown Fresno · 5 going</p></div><button class="button secondary" data-view="schedule">View schedule</button></div>
+        </div>
+        <div class="quick-grid">
+          <button class="quick-link" data-view="schedule"><span class="large-icon">▣</span><strong>Schedule</strong><span>Update your availability</span></button>
+          <button class="quick-link" data-view="locations"><span class="large-icon">⌖</span><strong>Locations</strong><span>See your group's spots</span></button>
+          <button class="quick-link" data-view="events"><span class="large-icon">✦</span><strong>Events Near You</strong><span>Find something happening</span></button>
+        </div>
+      </section>
+
+      <section class="view" id="schedule">
+        <div class="section-heading"><div><p class="eyebrow">Keep the group in sync</p><h2>Your schedule</h2><p>Add a change and MeetMax will update your open times.</p></div></div>
+        <div class="form-panel panel"><h3>Log a schedule update</h3><div class="form-grid"><label>What changed<input id="scheduleTitle" type="text" placeholder="Dentist appointment"></label><label>Date<input id="scheduleDate" type="date"></label><label>Starts at<input type="time" value="17:00"></label><label>Ends at<input type="time" value="18:00"></label><label class="full">Note (optional)<input type="text" placeholder="Running a little late"></label></div><button class="button" id="saveSchedule">Save update</button><p class="subcopy" id="scheduleStatus" aria-live="polite"></p></div>
+      </section>
+
+      <section class="view" id="locations"><div class="section-heading"><div><p class="eyebrow">Places around Fresno</p><h2>Local favorites</h2><p>Good spots across the city, ready for your next plan.</p></div><button class="button coral">+ Add location</button></div><div class="quick-grid"><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Woodward+Park+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">♧</span><strong>Woodward Park</strong><span>Outdoors · North Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Tower+District+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">☕</span><strong>Tower District</strong><span>Cafes &amp; nightlife · Central Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Gazebo+Gardens+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">✿</span><strong>Gazebo Gardens</strong><span>Garden center &amp; food trucks · Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Fresno+Chaffee+Zoo+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">✦</span><strong>Fresno Chaffee Zoo</strong><span>Family outings · Roeding Park</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Libelula+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">♡</span><strong>Libelula</strong><span>Brunch &amp; cocktails · Downtown Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Fresno+Art+Museum+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">▧</span><strong>Fresno Art Museum</strong><span>Art &amp; culture · Fresno</span></a></div></section>
+
+      <section class="view" id="events"><div class="section-heading"><div><p class="eyebrow">Around your group</p><h2>Fresno happenings</h2><p>Local event ideas; check venue schedules for current dates.</p></div></div><div class="event-list"><div class="event-row panel" data-title="ArtHop in Downtown Fresno" data-description="Explore local galleries, studios, and artists during Fresno's monthly art walk. Galleries and participating businesses typically welcome visitors on the first Thursday evening of each month." data-when="First Thursday of each month · Evening" data-where="Downtown Fresno" data-map-query="Downtown Fresno CA"><div class="event-date"><strong>1st</strong>THU</div><div><h3>ArtHop in Downtown Fresno</h3><p>Explore local galleries, studios, and artists during Fresno's monthly art walk.</p></div><button class="button secondary" data-event-action="details">Details</button></div><div class="event-row panel" data-title="Fresno Grizzlies at Chukchansi Park" data-description="Catch a hometown baseball game at Chukchansi Park in downtown Fresno. Home game dates and start times vary, so check the team's official schedule before heading out." data-when="2026 season · Game dates and times vary" data-where="Chukchansi Park · Downtown Fresno" data-map-query="Chukchansi Park Fresno CA"><div class="event-date"><strong>’26</strong>SEASON</div><div><h3>Fresno Grizzlies at Chukchansi Park</h3><p>Catch a hometown baseball game downtown; check the team schedule for game dates.</p></div><button class="button secondary" data-event-action="details">Details</button></div></div></section>
+
+      <section class="view" id="groups"><div class="section-heading"><div><p class="eyebrow">Your people</p><h2>Groups</h2><p>One place for every circle.</p></div><button class="button coral" id="showNewGroup">+ New group</button></div><form class="form-panel panel" id="newGroupForm" hidden><h3>Create a group</h3><div class="form-grid"><label class="full">Group name<input id="newGroupName" type="text" maxlength="60" placeholder="e.g. Game night crew" required></label></div><div class="activity-actions"><button class="button" type="submit">Create group</button><button class="button secondary" id="cancelNewGroup" type="button">Cancel</button></div></form><div class="quick-grid" id="groupGrid"></div><div class="group-detail panel" id="groupDetail" hidden><div class="section-heading"><div><p class="eyebrow" id="groupMemberSummary">Members</p><h3 id="groupDetailTitle"></h3></div><button class="button secondary" id="backToGroups" type="button">Back to groups</button></div><form class="add-member-form" id="addMemberForm"><label for="memberName">Add a member</label><div class="add-member-controls"><input id="memberName" type="text" maxlength="60" placeholder="Full name" required><button class="button" type="submit">Add member</button></div></form><p class="group-status" id="groupStatus" aria-live="polite"></p><ul class="member-list" id="memberList"></ul></div></section>
+
+      <section class="view" id="activities"><div class="section-heading"><div><p class="eyebrow">Matched for your group</p><h2>Activity ideas</h2><p>Swipe through plans that fit everyone's calendar and interests.</p></div></div><div class="activity-layout"><div class="activity-card"><div class="activity-art" id="activityArt">☕</div><div class="activity-content"><div class="activity-meta"><span class="tag">4 available</span><span class="tag">Low-key</span><span class="tag">Near everyone</span></div><h2 id="activityTitle">Coffee and a catch-up</h2><p id="activityDescription">A relaxed table, good pastries, and enough time to hear what everyone has been up to.</p><div class="activity-actions"><button class="button coral" id="requestActivity">Send to group&nbsp; →</button><button class="button secondary" id="nextActivity">Next idea</button></div></div></div><div class="panel activity-side"><h3>Why this matches</h3><ul><li>Everyone is free Sunday morning</li><li>Within 15 minutes of the group</li><li>Matches 3 shared interests</li></ul></div></div></section>
+
+      <section class="view" id="requests"><div class="section-heading"><div><p class="eyebrow">Stay in the loop</p><h2>Requests</h2><p>Plans your group has put on the table.</p></div></div><div class="request-list" id="requestList"><div class="request panel" data-title="Pottery class" data-description="Try a beginner-friendly pottery class together; Jordan will share studio details with the group." data-when="Saturday, October 3 · 2:00 PM" data-where="Clay House" data-host="Jordan" data-map-query="Clay House Fresno CA"><span class="avatar">JP</span><div class="request-copy"><strong>Jordan suggested a pottery class</strong><span>Saturday, Oct 3 · 2:00 PM · Clay House</span></div><div class="request-actions"><button class="button coral" data-request-action="details" data-request-intent="accept">I'm in</button><button class="button secondary" data-request-action="details">View</button></div></div><div class="request panel" data-title="Sunday brunch" data-description="Sam invited you to meet downtown for brunch and catch up with the group at a Fresno favorite." data-when="Sunday, September 28 · 11:00 AM" data-where="Libelula · Downtown Fresno" data-host="Sam" data-map-query="Libelula Fresno CA"><span class="avatar">SK</span><div class="request-copy"><strong>Sam invited you to Sunday brunch</strong><span>Sunday, Sep 28 · 11:00 AM · Libelula · Downtown Fresno</span></div><div class="request-actions"><button class="button coral" data-request-action="details" data-request-intent="accept">I'm in</button><button class="button secondary" data-request-action="details">View</button></div></div></div></section>
+    </main>
+  </div>
+
+  <dialog class="request-dialog" id="requestDialog" aria-labelledby="requestDialogTitle">
+    <div class="request-dialog-content">
+      <div class="request-dialog-heading"><div><p class="eyebrow">Plan details</p><h2 id="requestDialogTitle">Plan details</h2></div><button class="request-dialog-close" id="closeRequestDialog" type="button" aria-label="Close details">×</button></div>
+      <p class="request-dialog-description" id="requestDialogDescription"></p>
+      <div class="request-details"><div><span>When</span><strong id="requestDialogWhen"></strong></div><div><span>Where</span><a id="requestDialogWhere" href="#" target="_blank" rel="noreferrer"></a></div><div><span>Invited by</span><strong id="requestDialogHost"></strong></div></div>
+      <p class="request-dialog-status" id="requestDialogStatus" aria-live="polite"></p>
+      <div class="request-dialog-actions"><button class="button coral" id="confirmRequest" type="button">I'm in</button><button class="button secondary" id="dismissRequestDialog" type="button">Close</button></div>
+    </div>
+  </dialog>
+
+  <dialog class="request-dialog" id="eventDialog" aria-labelledby="eventDialogTitle">
+    <div class="request-dialog-content">
+      <div class="request-dialog-heading"><div><p class="eyebrow">Event details</p><h2 id="eventDialogTitle"></h2></div><button class="request-dialog-close" id="closeEventDialog" type="button" aria-label="Close event details">×</button></div>
+      <p class="request-dialog-description" id="eventDialogDescription"></p>
+      <div class="request-details"><div><span>When</span><strong id="eventDialogWhen"></strong></div><div><span>Where</span><a id="eventDialogWhere" href="#" target="_blank" rel="noreferrer">Open in Google Maps</a></div></div>
+      <div class="request-dialog-actions"><button class="button secondary" id="dismissEventDialog" type="button">Close</button></div>
+    </div>
+  </dialog>
+
+  <script>
+    const views = document.querySelectorAll('.view');
+    const navButtons = document.querySelectorAll('[data-view]');
+    const requestCount = document.querySelector('.request-count');
+
+    function showView(viewId) {
+      views.forEach((view) => view.classList.toggle('active', view.id === viewId));
+      document.querySelectorAll('.nav-button').forEach((button) => button.classList.toggle('active', button.dataset.view === viewId));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    navButtons.forEach((button) => button.addEventListener('click', () => showView(button.dataset.view)));
+
+    const eventDialog = document.querySelector('#eventDialog');
+    document.querySelector('#events').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-event-action="details"]');
+      if (!button) return;
+      const eventDetails = button.closest('.event-row');
+      document.querySelector('#eventDialogTitle').textContent = eventDetails.dataset.title;
+      document.querySelector('#eventDialogDescription').textContent = eventDetails.dataset.description;
+      document.querySelector('#eventDialogWhen').textContent = eventDetails.dataset.when;
+      const mapUrl = new URL('https://www.google.com/maps/search/');
+      mapUrl.searchParams.set('api', '1');
+      mapUrl.searchParams.set('query', eventDetails.dataset.mapQuery);
+      document.querySelector('#eventDialogWhere').href = mapUrl.toString();
+      eventDialog.showModal();
+    });
+
+    document.querySelector('#closeEventDialog').addEventListener('click', () => eventDialog.close());
+    document.querySelector('#dismissEventDialog').addEventListener('click', () => eventDialog.close());
+    eventDialog.addEventListener('click', (event) => {
+      if (event.target === eventDialog) eventDialog.close();
+    });
+
+    document.querySelector('#saveSchedule').addEventListener('click', () => {
+      const title = document.querySelector('#scheduleTitle').value.trim() || 'Schedule update';
+      document.querySelector('#scheduleStatus').textContent = `${title} saved. Your group's availability is up to date.`;
+    });
+
+    const activities = [
+      { icon: '☕', title: 'Brunch at Libelula', description: 'Meet downtown for brunch and cocktails at this Fresno favorite, with plenty of time to catch up.', place: 'Libelula · Downtown Fresno', mapQuery: 'Libelula Fresno CA' },
+      { icon: '♧', title: 'Explore Woodward Park', description: 'Walk the trails, visit the Shinzen Japanese Garden, and enjoy an easy outdoor afternoon in north Fresno.', place: 'Woodward Park · North Fresno', mapQuery: 'Woodward Park Fresno CA' },
+      { icon: '✦', title: 'Browse the Tower District', description: 'Spend an evening around Fresno’s Tower District with independent shops, restaurants, and live entertainment.', place: 'Tower District · Fresno', mapQuery: 'Tower District Fresno CA' }
+    ];
+    let activityIndex = 0;
+
+    document.querySelector('#nextActivity').addEventListener('click', () => {
+      activityIndex = (activityIndex + 1) % activities.length;
+      const activity = activities[activityIndex];
+      document.querySelector('#activityArt').textContent = activity.icon;
+      document.querySelector('#activityTitle').textContent = activity.title;
+      document.querySelector('#activityDescription').textContent = activity.description;
+    });
+
+    const requestList = document.querySelector('#requestList');
+    const requestDialog = document.querySelector('#requestDialog');
+    let selectedRequest = null;
+
+    function openRequestDetails(request) {
+      selectedRequest = request;
+      document.querySelector('#requestDialogTitle').textContent = request.dataset.title;
+      document.querySelector('#requestDialogDescription').textContent = request.dataset.description;
+      document.querySelector('#requestDialogWhen').textContent = request.dataset.when;
+      document.querySelector('#requestDialogWhere').textContent = request.dataset.where;
+      document.querySelector('#requestDialogHost').textContent = request.dataset.host;
+      const mapUrl = new URL('https://www.google.com/maps/search/');
+      mapUrl.searchParams.set('api', '1');
+      mapUrl.searchParams.set('query', request.dataset.mapQuery || request.dataset.where);
+      document.querySelector('#requestDialogWhere').href = mapUrl.toString();
+      const accepted = request.dataset.accepted === 'true';
+      document.querySelector('#requestDialogStatus').textContent = accepted ? 'Your RSVP is confirmed.' : '';
+      const confirmButton = document.querySelector('#confirmRequest');
+      confirmButton.textContent = accepted ? "You're in" : "I'm in";
+      confirmButton.disabled = accepted;
+      requestDialog.showModal();
+    }
+
+    requestList.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-request-action]');
+      if (action) openRequestDetails(action.closest('.request'));
+    });
+
+    document.querySelector('#confirmRequest').addEventListener('click', () => {
+      if (!selectedRequest) return;
+      selectedRequest.dataset.accepted = 'true';
+      const acceptButton = selectedRequest.querySelector('[data-request-intent="accept"]');
+      if (acceptButton) {
+        acceptButton.textContent = "You're in";
+        acceptButton.disabled = true;
+      }
+      document.querySelector('#requestDialogStatus').textContent = 'Your RSVP is confirmed.';
+      const confirmButton = document.querySelector('#confirmRequest');
+      confirmButton.textContent = "You're in";
+      confirmButton.disabled = true;
+    });
+
+    document.querySelector('#closeRequestDialog').addEventListener('click', () => requestDialog.close());
+    document.querySelector('#dismissRequestDialog').addEventListener('click', () => requestDialog.close());
+    requestDialog.addEventListener('click', (event) => {
+      if (event.target === requestDialog) requestDialog.close();
+    });
+
+    document.querySelector('#requestActivity').addEventListener('click', () => {
+      const activity = activities[activityIndex];
+      const request = document.createElement('div');
+      request.className = 'request panel';
+      request.dataset.title = activity.title;
+      request.dataset.description = activity.description;
+      request.dataset.when = 'Choose a time with your group';
+      request.dataset.where = activity.place;
+      request.dataset.host = 'Alex';
+      request.dataset.mapQuery = activity.mapQuery;
+
+      const avatar = document.createElement('span');
+      avatar.className = 'avatar';
+      avatar.textContent = 'AM';
+      const copy = document.createElement('div');
+      copy.className = 'request-copy';
+      const title = document.createElement('strong');
+      title.textContent = `You suggested ${activity.title}`;
+      const status = document.createElement('span');
+      status.textContent = 'Just now · Waiting for your group';
+      copy.append(title, status);
+      const actions = document.createElement('div');
+      actions.className = 'request-actions';
+      const acceptButton = document.createElement('button');
+      acceptButton.className = 'button coral';
+      acceptButton.dataset.requestAction = 'details';
+      acceptButton.dataset.requestIntent = 'accept';
+      acceptButton.textContent = "I'm in";
+      const detailsButton = document.createElement('button');
+      detailsButton.className = 'button secondary';
+      detailsButton.dataset.requestAction = 'details';
+      detailsButton.textContent = 'View';
+      actions.append(acceptButton, detailsButton);
+      request.append(avatar, copy, actions);
+      requestList.prepend(request);
+      requestCount.textContent = Number(requestCount.textContent) + 1;
+      showView('requests');
+    });
+
+    const groupGrid = document.querySelector('#groupGrid');
+    const groupDetail = document.querySelector('#groupDetail');
+    const memberList = document.querySelector('#memberList');
+    const groupStatus = document.querySelector('#groupStatus');
+    const memberNameInput = document.querySelector('#memberName');
+    const newGroupForm = document.querySelector('#newGroupForm');
+    const newGroupNameInput = document.querySelector('#newGroupName');
+    const defaultGroups = [
+      { id: 'weekend', name: 'Weekend crew', activity: 'Active today', members: ['Alex Morgan', 'Jordan Park', 'Sam Kim', 'Riley Chen', 'Taylor Brooks', 'Casey Lee'] },
+      { id: 'roommates', name: 'Roommates', activity: 'Active yesterday', members: ['Alex Morgan', 'Priya Shah', 'Morgan Chen', 'Eli Santos'] }
+    ];
+    let groups = defaultGroups;
+    let activeGroupId = null;
+
+    try {
+      const savedGroups = JSON.parse(localStorage.getItem('meetmax-groups') || 'null');
+      if (Array.isArray(savedGroups) && savedGroups.every((group) => group && typeof group.id === 'string' && typeof group.name === 'string' && Array.isArray(group.members) && group.members.every((member) => typeof member === 'string'))) {
+        groups = savedGroups;
+      }
+    } catch {}
+
+    function saveGroups() {
+      try {
+        localStorage.setItem('meetmax-groups', JSON.stringify(groups));
+      } catch {
+        groupStatus.textContent = 'Changes could not be saved in this browser.';
+      }
+    }
+
+    function renderGroups() {
+      groupGrid.replaceChildren();
+      groups.forEach((group) => {
+        const card = document.createElement('button');
+        card.className = 'quick-link';
+        card.type = 'button';
+        card.dataset.groupId = group.id;
+        const icon = document.createElement('span');
+        icon.className = 'large-icon';
+        icon.textContent = '♧';
+        const name = document.createElement('strong');
+        name.textContent = group.name;
+        const summary = document.createElement('span');
+        summary.textContent = `${group.members.length} members · ${group.activity}`;
+        card.append(icon, name, summary);
+        groupGrid.append(card);
+      });
+    }
+
+    function renderMembers() {
+      const group = groups.find((item) => item.id === activeGroupId);
+      if (!group) return;
+      document.querySelector('#groupDetailTitle').textContent = group.name;
+      document.querySelector('#groupMemberSummary').textContent = `${group.members.length} MEMBERS`;
+      memberList.replaceChildren();
+      group.members.forEach((member, index) => {
+        const row = document.createElement('li');
+        row.className = 'member-row';
+        const avatar = document.createElement('span');
+        avatar.className = 'avatar';
+        avatar.textContent = member.trim().split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+        const name = document.createElement('strong');
+        name.textContent = member;
+        const removeButton = document.createElement('button');
+        removeButton.className = 'button secondary';
+        removeButton.type = 'button';
+        removeButton.dataset.removeMember = String(index);
+        removeButton.setAttribute('aria-label', `Remove ${member} from ${group.name}`);
+        removeButton.textContent = 'Remove';
+        row.append(avatar, name, removeButton);
+        memberList.append(row);
+      });
+      renderGroups();
+    }
+
+    groupGrid.addEventListener('click', (event) => {
+      const card = event.target.closest('[data-group-id]');
+      if (!card) return;
+      activeGroupId = card.dataset.groupId;
+      groupGrid.hidden = true;
+      newGroupForm.hidden = true;
+      groupDetail.hidden = false;
+      groupStatus.textContent = '';
+      renderMembers();
+    });
+
+    document.querySelector('#backToGroups').addEventListener('click', () => {
+      groupDetail.hidden = true;
+      groupGrid.hidden = false;
+      groupStatus.textContent = '';
+    });
+
+    memberNameInput.addEventListener('input', () => memberNameInput.setCustomValidity(''));
+    document.querySelector('#addMemberForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const group = groups.find((item) => item.id === activeGroupId);
+      const name = memberNameInput.value.trim();
+      if (!group || !name) return;
+      if (group.members.some((member) => member.toLowerCase() === name.toLowerCase())) {
+        memberNameInput.setCustomValidity('That person is already in this group.');
+        memberNameInput.reportValidity();
+        return;
+      }
+      group.members.push(name);
+      memberNameInput.value = '';
+      groupStatus.textContent = `${name} added to ${group.name}.`;
+      saveGroups();
+      renderMembers();
+      memberNameInput.focus();
+    });
+
+    memberList.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('[data-remove-member]');
+      const group = groups.find((item) => item.id === activeGroupId);
+      if (!removeButton || !group) return;
+      const [removedMember] = group.members.splice(Number(removeButton.dataset.removeMember), 1);
+      groupStatus.textContent = `${removedMember} removed from ${group.name}.`;
+      saveGroups();
+      renderMembers();
+    });
+
+    document.querySelector('#showNewGroup').addEventListener('click', () => {
+      newGroupForm.hidden = !newGroupForm.hidden;
+      if (!newGroupForm.hidden) newGroupNameInput.focus();
+    });
+    document.querySelector('#cancelNewGroup').addEventListener('click', () => {
+      newGroupForm.reset();
+      newGroupForm.hidden = true;
+      newGroupNameInput.setCustomValidity('');
+    });
+    newGroupNameInput.addEventListener('input', () => newGroupNameInput.setCustomValidity(''));
+    newGroupForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = newGroupNameInput.value.trim();
+      if (!name) return;
+      if (groups.some((group) => group.name.toLowerCase() === name.toLowerCase())) {
+        newGroupNameInput.setCustomValidity('A group with this name already exists.');
+        newGroupNameInput.reportValidity();
+        return;
+      }
+      const group = { id: `group-${Date.now()}`, name, activity: 'Created just now', members: [] };
+      groups.push(group);
+      saveGroups();
+      newGroupForm.reset();
+      newGroupForm.hidden = true;
+      activeGroupId = group.id;
+      groupGrid.hidden = true;
+      groupDetail.hidden = false;
+      renderMembers();
+      memberNameInput.focus();
+    });
+
+    renderGroups();
+  </script>
+</body>
+</html>
