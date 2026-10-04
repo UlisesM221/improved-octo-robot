@@ -261,7 +261,7 @@
         <div class="section-heading"><div><p class="eyebrow">Keep the group in sync</p><h2>Your schedule</h2><p>Add a change and MeetMax will update your open times.</p></div></div>
         <div class="schedule-planner panel">
           <div class="section-heading"><div><p class="eyebrow">Make it happen</p><h3>Plan a get-together</h3><p>Name your plan, map out the stops, and keep track of what to bring.</p></div><button class="button secondary" id="savePlan" type="button">Save plan</button></div>
-          <div class="plan-fields"><label for="planTitle">Plan name<input id="planTitle" type="text" maxlength="80" placeholder="Sunday brunch"></label><label for="planDate">Date<input id="planDate" type="date"></label></div>
+          <div class="plan-fields"><label for="planTitle">Plan name<input id="planTitle" type="text" maxlength="80" placeholder="Sunday brunch"></label><label for="planDate">Date<input id="planDate" type="date" max="9999-12-31"></label></div>
           <p class="plan-status" id="planStatus" aria-live="polite"></p>
           <div class="plan-grid">
             <section class="plan-section panel" aria-labelledby="itineraryHeading">
@@ -286,7 +286,7 @@
             </section>
           </div>
         </div>
-        <div class="form-panel panel"><h3>Log a schedule update</h3><div class="form-grid"><label>What changed<input id="scheduleTitle" type="text" placeholder="Dentist appointment"></label><label>Date<input id="scheduleDate" type="date"></label><label>Starts at<input type="time" value="17:00"></label><label>Ends at<input type="time" value="18:00"></label><label class="full">Note (optional)<input type="text" placeholder="Running a little late"></label></div><button class="button" id="saveSchedule">Save update</button><p class="subcopy" id="scheduleStatus" aria-live="polite"></p></div>
+        <div class="form-panel panel"><h3>Log a schedule update</h3><div class="form-grid"><label>What changed<input id="scheduleTitle" type="text" placeholder="Dentist appointment"></label><label>Date<input id="scheduleDate" type="date" max="9999-12-31"></label><label>Starts at<input type="time" value="17:00"></label><label>Ends at<input type="time" value="18:00"></label><label class="full">Note (optional)<input type="text" placeholder="Running a little late"></label></div><button class="button" id="saveSchedule">Save update</button><p class="subcopy" id="scheduleStatus" aria-live="polite"></p></div>
       </section>
 
       <section class="view" id="locations"><div class="section-heading"><div><p class="eyebrow">Places around Fresno</p><h2>Local favorites</h2><p>Good spots across the city, ready for your next plan.</p></div><button class="button coral">+ Add location</button></div><div class="quick-grid"><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Woodward+Park+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">♧</span><strong>Woodward Park</strong><span>Outdoors · North Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Tower+District+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">☕</span><strong>Tower District</strong><span>Cafes &amp; nightlife · Central Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Gazebo+Gardens+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">✿</span><strong>Gazebo Gardens</strong><span>Garden center &amp; food trucks · Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Fresno+Chaffee+Zoo+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">✦</span><strong>Fresno Chaffee Zoo</strong><span>Family outings · Roeding Park</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Libelula+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">♡</span><strong>Libelula</strong><span>Brunch &amp; cocktails · Downtown Fresno</span></a><a class="quick-link" href="https://www.google.com/maps/search/?api=1&amp;query=Fresno+Art+Museum+Fresno+CA" target="_blank" rel="noreferrer"><span class="large-icon">▧</span><strong>Fresno Art Museum</strong><span>Art &amp; culture · Fresno</span></a></div></section>
@@ -461,7 +461,24 @@
       if (event.target === profileDialog) profileDialog.close();
     });
 
+    const scheduleDateInput = document.querySelector('#scheduleDate');
+
+    function hasFourDigitYear(input) {
+      const valid = !input.value || (/^\d{4}-\d{2}-\d{2}$/.test(input.value) && !input.validity.rangeOverflow);
+      input.setCustomValidity(valid ? '' : 'Enter a date with a four-digit year.');
+      return valid;
+    }
+
+    [scheduleDateInput, document.querySelector('#planDate')].forEach((input) => {
+      input.addEventListener('input', () => hasFourDigitYear(input));
+      input.addEventListener('change', () => hasFourDigitYear(input));
+    });
+
     document.querySelector('#saveSchedule').addEventListener('click', () => {
+      if (!hasFourDigitYear(scheduleDateInput)) {
+        scheduleDateInput.reportValidity();
+        return;
+      }
       const title = document.querySelector('#scheduleTitle').value.trim() || 'Schedule update';
       document.querySelector('#scheduleStatus').textContent = `${title} saved. Your group's availability is up to date.`;
     });
@@ -480,6 +497,7 @@
 
     function isSavedPlan(value) {
       return value && typeof value.title === 'string' && typeof value.date === 'string'
+        && (!value.date || /^\d{4}-\d{2}-\d{2}$/.test(value.date))
         && Array.isArray(value.itinerary)
         && value.itinerary.every((stop) => stop && typeof stop.id === 'string' && typeof stop.time === 'string'
           && typeof stop.activity === 'string' && typeof stop.location === 'string')
@@ -506,6 +524,10 @@
     planDateInput.value = plan.date;
 
     function savePlanState() {
+      if (!hasFourDigitYear(planDateInput)) {
+        setPlanStatus('Use a date with a four-digit year before saving this plan.', true);
+        return;
+      }
       plan.title = planTitleInput.value.trim();
       plan.date = planDateInput.value;
       try {
