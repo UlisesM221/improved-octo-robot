@@ -463,19 +463,32 @@
 
     const scheduleDateInput = document.querySelector('#scheduleDate');
 
-    function hasFourDigitYear(input) {
-      const valid = !input.value || (/^\d{4}-\d{2}-\d{2}$/.test(input.value) && !input.validity.rangeOverflow);
-      input.setCustomValidity(valid ? '' : 'Enter a date with a four-digit year.');
+    function isValidFourDigitDate(value) {
+      if (!value) return true;
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (!match) return false;
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      if (year < 1 || month < 1 || month > 12) return false;
+      const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+      const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      return day >= 1 && day <= daysInMonth[month - 1];
+    }
+
+    function validateScheduleDate(input) {
+      const valid = isValidFourDigitDate(input.value) && !input.validity.rangeOverflow;
+      input.setCustomValidity(valid ? '' : 'Enter a valid date with a four-digit year.');
       return valid;
     }
 
     [scheduleDateInput, document.querySelector('#planDate')].forEach((input) => {
-      input.addEventListener('input', () => hasFourDigitYear(input));
-      input.addEventListener('change', () => hasFourDigitYear(input));
+      input.addEventListener('input', () => validateScheduleDate(input));
+      input.addEventListener('change', () => validateScheduleDate(input));
     });
 
     document.querySelector('#saveSchedule').addEventListener('click', () => {
-      if (!hasFourDigitYear(scheduleDateInput)) {
+      if (!validateScheduleDate(scheduleDateInput)) {
         scheduleDateInput.reportValidity();
         return;
       }
@@ -497,7 +510,7 @@
 
     function isSavedPlan(value) {
       return value && typeof value.title === 'string' && typeof value.date === 'string'
-        && (!value.date || /^\d{4}-\d{2}-\d{2}$/.test(value.date))
+        && isValidFourDigitDate(value.date)
         && Array.isArray(value.itinerary)
         && value.itinerary.every((stop) => stop && typeof stop.id === 'string' && typeof stop.time === 'string'
           && typeof stop.activity === 'string' && typeof stop.location === 'string')
@@ -524,8 +537,8 @@
     planDateInput.value = plan.date;
 
     function savePlanState() {
-      if (!hasFourDigitYear(planDateInput)) {
-        setPlanStatus('Use a date with a four-digit year before saving this plan.', true);
+      if (!validateScheduleDate(planDateInput)) {
+        setPlanStatus('Use a valid date with a four-digit year before saving this plan.', true);
         return;
       }
       plan.title = planTitleInput.value.trim();
